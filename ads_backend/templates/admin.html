@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin Panel — ADS Detailing</title>
+<style>
+:root{
+  --red:#ef4444; --red-dark:#b91c1c; --red-pale:#fef2f2;
+  --dark:#111827; --text:#1f2937; --muted:#6b7280; --white:#fff;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f9fa;color:var(--text);}
+a{color:inherit;text-decoration:none;}
+
+header{background:var(--dark);color:#fff;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.15rem;letter-spacing:.03em;}
+header span{font-size:0.82rem;opacity:.7;}
+
+.stats{display:flex;gap:16px;padding:24px 32px;flex-wrap:wrap;}
+.stat{background:#fff;border-radius:10px;padding:18px 28px;box-shadow:0 3px 14px rgba(0,0,0,.07);flex:1;min-width:140px;border-top:4px solid var(--red);text-align:center;}
+.stat .n{font-size:2.2rem;font-weight:700;color:var(--red-dark);}
+.stat .l{font-size:0.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:4px;}
+
+.filters{padding:0 32px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.filters a{padding:7px 18px;border-radius:50px;font-size:0.82rem;font-weight:600;background:#fff;border:1.5px solid #e5e7eb;color:var(--dark);transition:all .2s;}
+.filters a:hover,.filters a.active{background:var(--red);color:#fff;border-color:var(--red);}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:50px;font-size:0.72rem;font-weight:700;}
+.badge-new{background:#fff3cd;color:#856404;}
+.badge-confirmed{background:#d1ecf1;color:#0c5460;}
+.badge-completed{background:#d4edda;color:#155724;}
+.badge-cancelled{background:#f8d7da;color:#721c24;}
+
+.table-wrap{padding:0 32px 40px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 3px 14px rgba(0,0,0,.07);font-size:0.875rem;}
+thead{background:var(--dark);color:#fff;}
+th{padding:13px 16px;text-align:left;font-size:0.75rem;letter-spacing:.07em;text-transform:uppercase;}
+td{padding:13px 16px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--red-pale);}
+.col-id{width:50px;color:var(--muted);}
+.col-name{min-width:130px;font-weight:600;}
+.col-msg{max-width:260px;color:var(--muted);}
+.col-actions{white-space:nowrap;}
+
+.btn-sm{display:inline-block;padding:5px 12px;border-radius:6px;font-size:0.76rem;font-weight:600;cursor:pointer;border:none;transition:opacity .15s;}
+.btn-confirm{background:#cce5ff;color:#004085;}
+.btn-complete{background:#d4edda;color:#155724;}
+.btn-cancel{background:#fff3cd;color:#856404;}
+.btn-del{background:#f8d7da;color:#721c24;}
+.btn-sm:hover{opacity:.8;}
+
+.empty{text-align:center;padding:60px;color:var(--muted);font-size:0.95rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🚗 ADS Detailing — Admin Panel</h1>
+  <span>Appointment Management Dashboard</span>
+</header>
+
+<div class="stats">
+  <div class="stat"><div class="n">{{ stats.get('new', 0) }}</div><div class="l">New</div></div>
+  <div class="stat"><div class="n">{{ stats.get('confirmed', 0) }}</div><div class="l">Confirmed</div></div>
+  <div class="stat"><div class="n">{{ stats.get('completed', 0) }}</div><div class="l">Completed</div></div>
+  <div class="stat"><div class="n">{{ stats.get('cancelled', 0) }}</div><div class="l">Cancelled</div></div>
+  <div class="stat">
+    <div class="n">{{ (stats.get('new',0) + stats.get('confirmed',0) + stats.get('completed',0) + stats.get('cancelled',0)) }}</div>
+    <div class="l">Total</div>
+  </div>
+</div>
+
+<div class="filters">
+  <strong style="color:var(--muted);font-size:0.82rem;margin-right:4px;">Filter:</strong>
+  <a href="/admin" class="active">All</a>
+  <a href="/admin?status=new">New</a>
+  <a href="/admin?status=confirmed">Confirmed</a>
+  <a href="/admin?status=completed">Completed</a>
+  <a href="/admin?status=cancelled">Cancelled</a>
+</div>
+
+<div class="table-wrap">
+  {% if appointments %}
+  <table>
+    <thead>
+      <tr>
+        <th class="col-id">#</th>
+        <th class="col-name">Name</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Service</th>
+        <th class="col-msg">Message</th>
+        <th>Status</th>
+        <th>Received</th>
+        <th class="col-actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in appointments %}
+      <tr id="row-{{ a['id'] }}">
+        <td class="col-id">{{ a['id'] }}</td>
+        <td class="col-name">{{ a['name'] }}</td>
+        <td><a href="tel:{{ a['phone'] }}">{{ a['phone'] }}</a></td>
+        <td><a href="mailto:{{ a['email'] }}">{{ a['email'] }}</a></td>
+        <td>{{ service_labels.get(a['service'], a['service']) }}</td>
+        <td class="col-msg">{{ a['message'] or '—' }}</td>
+        <td>
+          <span class="badge
+            {% if a['status']=='new' %}badge-new
+            {% elif a['status']=='confirmed' %}badge-confirmed
+            {% elif a['status']=='completed' %}badge-completed
+            {% else %}badge-cancelled{% endif %}
+          ">{{ a['status'] }}</span>
+        </td>
+        <td style="white-space:nowrap;color:var(--muted)">{{ a['created_at'] }}</td>
+        <td class="col-actions">
+          {% if a['status'] != 'confirmed' %}
+          <button class="btn-sm btn-confirm" onclick="setStatus({{ a['id'] }},'confirmed')">✓ Confirm</button>
+          {% endif %}
+          {% if a['status'] != 'completed' %}
+          <button class="btn-sm btn-complete" onclick="setStatus({{ a['id'] }},'completed')">✓ Done</button>
+          {% endif %}
+          {% if a['status'] != 'cancelled' %}
+          <button class="btn-sm btn-cancel" onclick="setStatus({{ a['id'] }},'cancelled')">✗ Cancel</button>
+          {% endif %}
+          <button class="btn-sm btn-del" onclick="deleteRow({{ a['id'] }})">🗑</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">No appointments yet — they will appear here once submitted.</div>
+  {% endif %}
+</div>
+
+<script>
+async function setStatus(id, status) {
+  const res = await fetch(`/api/admin/appointments/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  });
+  if (res.ok) location.reload();
+  else alert('Failed to update status.');
+}
+
+async function deleteRow(id) {
+  if (!confirm('Delete this appointment permanently?')) return;
+  const res = await fetch(`/api/admin/appointments/${id}`, { method: 'DELETE' });
+  if (res.ok) {
+    const row = document.getElementById(`row-${id}`);
+    if (row) row.remove();
+  } else {
+    alert('Failed to delete appointment.');
+  }
+}
+</script>
+</body>
+</html>
