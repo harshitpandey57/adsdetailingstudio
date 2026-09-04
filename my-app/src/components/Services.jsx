@@ -57,7 +57,7 @@ export default function Services({ setView, setSelectedService }) {
         },
         {
           title: 'Ceramic Coating Graphene',
-          image: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=600&h=450&q=80',
+          image: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=600&h=450&q=80',
           desc: 'Advanced graphene infused coating for extreme durability and water beading.',
           duration: '1 day',
           price: '₹16,000 onwards'
@@ -114,7 +114,7 @@ export default function Services({ setView, setSelectedService }) {
         },
         {
           title: 'Chrome Parts Restoration',
-          image: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=600&h=450&q=80',
+          image: 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=600&h=450&q=80',
           desc: 'Chemical and hand polishing to remove oxidation and scale from chrome details.',
           duration: '1 hr',
           price: '₹2500 onwards'
