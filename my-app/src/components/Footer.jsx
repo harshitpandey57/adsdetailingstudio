@@ -53,7 +53,7 @@ export default function Footer({ setView }) {
               </a>
 
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/profile.php?id=61593364937556"
                 target="_blank"
                 rel="noreferrer"
                 className="text-[#1877F2] hover:scale-110 transition-transform block"
