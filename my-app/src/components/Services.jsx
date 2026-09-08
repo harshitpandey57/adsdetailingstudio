@@ -151,7 +151,7 @@ export default function Services({ setView, setSelectedService }) {
       cards: [
         {
           title: 'Platinum Coating (5yr jronx coating)',
-          image: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=600&h=450&q=80',
+          image: 'https://images.unsplash.com/photo-1658244500543-47f32dc51dc2?auto=format&fit=crop&w=600&h=450&q=80',
           desc: 'Our signature 5-year premium ceramic coating protection package.',
           duration: 'Coming Soon',
           price: 'Coming Soon'

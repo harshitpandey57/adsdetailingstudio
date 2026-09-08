@@ -1,5 +1,6 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import aboutUsImg from '../assets/about_us_black_cars.png';
 
 export default function ContactIntro() {
   return (
@@ -13,7 +14,7 @@ export default function ContactIntro() {
           <div className="lg:col-span-5">
             <div className="relative overflow-hidden rounded-2xl shadow-xl group cursor-pointer">
               <img
-                src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80"
+                src={aboutUsImg}
                 alt="ADS Detailing Workshop"
                 className="w-full object-cover aspect-[4/3] md:aspect-[16/10] lg:aspect-[4/3] transition-transform duration-700 ease-out group-hover:scale-105"
               />
