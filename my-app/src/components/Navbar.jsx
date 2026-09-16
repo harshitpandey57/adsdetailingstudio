@@ -62,10 +62,11 @@ export default function Navbar({ currentView, setView }) {
           <div className="nav-desktop-links">
             <a href="/" className="nav-link" onClick={(e) => handleNavClick(e, 'home', '')}>Home</a>
             <a href="#about" className="nav-link" onClick={(e) => handleNavClick(e, 'about', '')}>About</a>
-            <a href="#gallery" className="nav-link" onClick={(e) => handleNavClick(e, 'home', '#gallery')}>Gallery</a>
-            <a href="#testimonials" className="nav-link" onClick={(e) => handleNavClick(e, 'home', '#testimonials')}>Testimonials</a>
-            <a href="#contact" className="nav-link" onClick={(e) => handleNavClick(e, 'contact', '')}>Contact</a>
             <a href="#services" className="nav-link" onClick={(e) => handleNavClick(e, 'services', '')}>Services</a>
+            <a href="#gallery" className="nav-link" onClick={(e) => handleNavClick(e, 'home', '#gallery')}>Gallery</a>
+            <a href="#blog" className="nav-link" onClick={(e) => handleNavClick(e, 'home', '#blog')}>Blog</a>
+            <a href="#faqs" className="nav-link" onClick={(e) => handleNavClick(e, 'home', '#faqs')}>FAQ</a>
+            <a href="#contact" className="nav-link" onClick={(e) => handleNavClick(e, 'contact', '')}>Contact</a>
           </div>
 
           {/* Book Appointment CTA Button */}
@@ -87,10 +88,11 @@ export default function Navbar({ currentView, setView }) {
         <div className="nav-mobile-menu">
           <a href="#home" className="nav-link-mobile" onClick={(e) => handleNavClick(e, 'home', '')}>Home</a>
           <a href="#about" className="nav-link-mobile" onClick={(e) => handleNavClick(e, 'about', '')}>About</a>
-          <a href="#gallery" className="nav-link-mobile" onClick={(e) => handleNavClick(e, 'home', '#gallery')}>Gallery</a>
-          <a href="#testimonials" className="nav-link-mobile" onClick={(e) => handleNavClick(e, 'home', '#testimonials')}>Testimonials</a>
-          <a href="#contact" className="nav-link-mobile" onClick={(e) => handleNavClick(e, 'contact', '')}>Contact</a>
           <a href="#services" className="nav-link-mobile" onClick={(e) => handleNavClick(e, 'services', '')}>Services</a>
+          <a href="#gallery" className="nav-link-mobile" onClick={(e) => handleNavClick(e, 'home', '#gallery')}>Gallery</a>
+          <a href="#blog" className="nav-link-mobile" onClick={(e) => handleNavClick(e, 'home', '#blog')}>Blog</a>
+          <a href="#faqs" className="nav-link-mobile" onClick={(e) => handleNavClick(e, 'home', '#faqs')}>FAQ</a>
+          <a href="#contact" className="nav-link-mobile" onClick={(e) => handleNavClick(e, 'contact', '')}>Contact</a>
           <a href="#contact" className="btn-cta-mobile text-white font-bold no-underline flex items-center justify-center gap-1.5 mt-2" onClick={(e) => handleNavClick(e, 'contact', '')}>
             Book Appointment <ArrowRight size={16} />
           </a>

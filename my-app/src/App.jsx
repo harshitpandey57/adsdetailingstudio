@@ -13,6 +13,8 @@ import ServicesPreview from './components/ServicesPreview';
 import WhyChooseUs from './components/WhyChooseUs';
 import StatsBanner from './components/StatsBanner';
 import Gallery from './components/Gallery';
+import BlogCards from './components/BlogCards';
+import BlogPost from './components/BlogPost';
 import Testimonials from './components/Testimonials';
 import FAQ from './components/FAQ';
 import Contact from './components/Contact';
@@ -23,8 +25,9 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsAndConditions from './components/TermsAndConditions';
 
 export default function App() {
-  const [view, setView] = useState('home'); // 'home', 'about', 'contact', or 'services'
+  const [view, setView] = useState('home'); // 'home', 'about', 'contact', 'services', 'blog'
   const [selectedService, setSelectedService] = useState('');
+  const [activeBlog, setActiveBlog] = useState(null);
 
   // Scroll to top when view changes
   useEffect(() => {
@@ -42,7 +45,9 @@ export default function App() {
           <WhyChooseUs setView={setView} />
           <ServicesPreview setView={setView} />
           <Gallery />
+          <BlogCards setView={setView} setActiveBlog={setActiveBlog} />
           <Testimonials />
+          <FAQ />
           <Contact selectedService={selectedService} />
         </>
       ) : view === 'about' ? (
@@ -60,6 +65,8 @@ export default function App() {
           <ContactIntro />
           <ContactFormAndDetails selectedService={selectedService} />
         </>
+      ) : view === 'blog' ? (
+        <BlogPost blogId={activeBlog} setView={setView} setActiveBlog={setActiveBlog} />
       ) : view === 'privacy' ? (
         <PrivacyPolicy />
       ) : view === 'terms' ? (
