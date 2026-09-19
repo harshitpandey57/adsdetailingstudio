@@ -54,10 +54,7 @@ limiter = Limiter(get_remote_address, app=app, default_limits=[], storage_uri="m
 
 # ── Config (override via environment variables / .env) ───────────────────────
 class Config:
-    DB_PATH        = os.getenv(
-        "DB_PATH",
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "appointments.db")
-    )
+    DB_PATH        = os.getenv("DB_PATH", "appointments.db")
 
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "ads@2024")
@@ -94,12 +91,6 @@ def init_db():
         """)
         conn.commit()
     log.info("Database ready: %s", cfg.DB_PATH)
-
-# Ensure the DB/table exist as soon as the module is imported — this is what
-# makes it work under Gunicorn, which imports app.py rather than running it
-# as __main__ (so the old `if __name__ == "__main__": init_db()` never fired
-# in production).
-init_db()
 
 # ── Email helper ──────────────────────────────────────────────────────────────
 SERVICE_LABELS = {
@@ -339,6 +330,7 @@ def serve_react(path):
 #  ENTRY POINT
 # ═══════════════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
+    init_db()
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("FLASK_ENV", "development") == "development"
     log.info("Starting ADS Detailing backend on port %d (debug=%s)", port, debug)
