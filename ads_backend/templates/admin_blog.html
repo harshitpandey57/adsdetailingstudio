@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin Panel — Publish Blog Post</title>
+<style>
+:root{
+  --red:#ef4444; --red-dark:#b91c1c; --red-pale:#fef2f2;
+  --dark:#111827; --text:#1f2937; --muted:#6b7280; --white:#fff;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f9fa;color:var(--text);}
+a{color:inherit;text-decoration:none;}
+
+header{background:var(--dark);color:#fff;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.15rem;letter-spacing:.03em;}
+header span{font-size:0.82rem;opacity:.7;}
+
+.nav-tabs {
+  padding: 16px 32px 0;
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+  margin-bottom: 24px;
+}
+.nav-tabs a {
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+.nav-tabs a:hover {
+  color: var(--dark);
+}
+.nav-tabs a.active {
+  color: var(--red);
+  border-bottom-color: var(--red);
+}
+
+.container {
+  padding: 0 32px 40px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 3px 14px rgba(0,0,0,.07);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--dark);
+}
+.form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.form-control:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-pale);
+}
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.section-block {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fafafa;
+  position: relative;
+}
+.section-block h4 {
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  color: var(--dark);
+}
+.btn-remove-section {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--red);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-remove-section:hover {
+  text-decoration: underline;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity .15s;
+}
+.btn-primary {
+  background: var(--red);
+  color: #fff;
+}
+.btn-primary:hover {
+  opacity: .9;
+}
+.btn-secondary {
+  background: #e5e7eb;
+  color: var(--dark);
+}
+.btn-secondary:hover {
+  background: #d1d5db;
+}
+.btn-outline {
+  background: transparent;
+  border: 1px dashed #d1d5db;
+  color: var(--muted);
+  width: 100%;
+  padding: 12px;
+  text-align: center;
+}
+.btn-outline:hover {
+  border-color: var(--dark);
+  color: var(--dark);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 32px 0;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🚗 ADS Detailing — Admin Panel</h1>
+  <span>Blog Management</span>
+</header>
+
+<div class="nav-tabs">
+  <a href="/admin">Appointments</a>
+  <a href="/admin/blog" class="active">Publish Blog Post</a>
+</div>
+
+<div class="container">
+  
+  <div class="card" id="listCard" style="margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h2 style="font-size: 1.25rem;">Published Posts</h2>
+      <button onclick="showForm()" class="btn btn-primary">+ Add New Post</button>
+    </div>
+    <div style="margin-bottom: 16px;">
+      <input type="text" class="form-control" placeholder="Search by title or category..." oninput="handleSearch(event)">
+    </div>
+    <div id="blogListContainer">
+      <p style="color: var(--muted);">Loading posts...</p>
+    </div>
+  </div>
+
+  <div class="card" id="formCard" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <h2 id="formTitle" style="font-size: 1.25rem;">Create New Blog Post</h2>
+      <button type="button" onclick="showList()" class="btn btn-secondary">Cancel</button>
+    </div>
+    
+    <form id="blogForm">
+      <input type="hidden" id="editBlogId" name="id" value="">
+      <!-- Basic Details -->
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" class="form-control" name="title" placeholder="e.g. Why Ceramic Coating Is the Best Investment" required>
+      </div>
+      
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Category</label>
+          <input type="text" class="form-control" name="category" placeholder="e.g. Ceramic Coating" required>
+        </div>
+        <div class="form-group">
+          <label>Tag</label>
+          <input type="text" class="form-control" name="tag" placeholder="e.g. Protection" required>
+        </div>
+      </div>
+      
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Read Time</label>
+          <input type="text" class="form-control" name="readTime" placeholder="e.g. 9 min read" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Cover Image URL (or upload mapping)</label>
+        <input type="text" class="form-control" name="image" placeholder="e.g. /assets/blog_ceramic_coating.jpg" required>
+      </div>
+
+      <div class="form-group">
+        <label>Excerpt (Short summary for the blog card)</label>
+        <textarea class="form-control" name="excerpt" placeholder="Write a short summary..." required></textarea>
+      </div>
+
+      <hr>
+
+      <!-- Content -->
+      <h3 style="margin-bottom: 16px; font-size: 1.1rem;">Article Content</h3>
+
+      <div class="form-group">
+        <label>Introduction Paragraph</label>
+        <textarea class="form-control" name="intro" placeholder="Your car's paint is under constant attack..." style="min-height: 120px;" required></textarea>
+      </div>
+
+      <div id="sectionsContainer">
+        <!-- Sections will be appended here -->
+      </div>
+
+      <button type="button" class="btn btn-outline" id="addSectionBtn">+ Add Content Section</button>
+
+      <hr>
+
+      <div class="form-group">
+        <label>Conclusion Paragraph</label>
+        <textarea class="form-control" name="conclusion" placeholder="Wrap up your article here..." style="min-height: 100px;"></textarea>
+      </div>
+
+      <hr>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('blogForm').reset()">Reset</button>
+        <button type="submit" class="btn btn-primary">Publish Post</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  let sectionCount = 0;
+  let allBlogs = [];
+  let currentPage = 1;
+  const itemsPerPage = 5;
+  let searchQuery = '';
+
+  function showForm() {
+    document.getElementById('listCard').style.display = 'none';
+    document.getElementById('formCard').style.display = 'block';
+  }
+
+  function showList() {
+    document.getElementById('listCard').style.display = 'block';
+    document.getElementById('formCard').style.display = 'none';
+    resetForm();
+  }
+
+  function createSectionHtml(index) {
+    return `
+      <div class="section-block" id="section-${index}">
+        <button type="button" class="btn-remove-section" onclick="removeSection(${index})">Remove</button>
+        <h4>Section ${index + 1}</h4>
+        
+        <div class="form-group">
+          <label>Heading</label>
+          <input type="text" class="form-control" name="section_heading_${index}" id="sec_head_${index}" placeholder="e.g. What Exactly Is Ceramic Coating?" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Body Text</label>
+          <textarea class="form-control" name="section_body_${index}" id="sec_body_${index}" placeholder="Write the main paragraph for this section..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Bullets (Optional, one per line)</label>
+          <textarea class="form-control" name="section_bullets_${index}" id="sec_bul_${index}" placeholder="- Point 1&#10;- Point 2"></textarea>
+        </div>
+      </div>
+    `;
+  }
+
+  function addSection() {
+    const container = document.getElementById('sectionsContainer');
+    container.insertAdjacentHTML('beforeend', createSectionHtml(sectionCount));
+    sectionCount++;
+    return sectionCount - 1;
+  }
+
+  function removeSection(index) {
+    const el = document.getElementById(`section-${index}`);
+    if (el) el.remove();
+  }
+
+  document.getElementById('addSectionBtn').addEventListener('click', addSection);
+
+  // Initialize
+  addSection();
+  fetchBlogs();
+
+  async function fetchBlogs() {
+    try {
+      const res = await fetch('/api/blogs');
+      allBlogs = await res.json();
+      allBlogs.reverse(); // Show newest first
+      renderBlogList();
+    } catch (err) {
+      document.getElementById('blogListContainer').innerHTML = '<p style="color: var(--red);">Error loading posts.</p>';
+    }
+  }
+
+  function handleSearch(e) {
+    searchQuery = e.target.value.toLowerCase();
+    currentPage = 1;
+    renderBlogList();
+  }
+
+  function changePage(delta) {
+    currentPage += delta;
+    renderBlogList();
+  }
+
+  function renderBlogList() {
+    const container = document.getElementById('blogListContainer');
+    
+    // Filter
+    const filtered = allBlogs.filter(b => 
+      b.title.toLowerCase().includes(searchQuery) || 
+      b.category.toLowerCase().includes(searchQuery)
+    );
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<p style="color: var(--muted);">No posts found.</p>';
+      return;
+    }
+
+    // Paginate
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const paginated = filtered.slice(start, start + itemsPerPage);
+
+    let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+    paginated.forEach(blog => {
+      html += `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px;">
+          <div>
+            <strong>${blog.title}</strong>
+            <div style="font-size: 0.85rem; color: var(--muted); margin-top: 4px;">
+              ${blog.date} &bull; ${blog.category}
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button onclick="editBlog(${blog.id})" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">Edit</button>
+            <button onclick="deleteBlog(${blog.id})" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem;">Delete</button>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    
+    // Pagination controls
+    if (totalPages > 1) {
+      html += `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+          <button onclick="changePage(-1)" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
+          <span style="font-size: 0.85rem; color: var(--muted);">Page ${currentPage} of ${totalPages}</span>
+          <button onclick="changePage(1)" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+        </div>
+      `;
+    }
+    
+    container.innerHTML = html;
+  }
+
+  async function deleteBlog(id) {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    try {
+      const res = await fetch(`/api/admin/blogs/${id}`, { method: 'DELETE' });
+      const result = await res.json();
+      if (result.success) {
+        fetchBlogs(); // Reload list
+      } else {
+        alert(result.error);
+      }
+    } catch (err) {
+      alert('Error deleting: ' + err.message);
+    }
+  }
+
+  async function editBlog(id) {
+    try {
+      const res = await fetch(`/api/blogs/${id}`);
+      const blog = await res.json();
+      
+      document.getElementById('editBlogId').value = blog.id;
+      document.getElementById('formTitle').innerText = 'Edit Blog Post';
+      document.querySelector('button[type="submit"]').innerText = 'Update Post';
+      
+      const form = document.getElementById('blogForm');
+      form.title.value = blog.title;
+      form.category.value = blog.category;
+      form.tag.value = blog.tag;
+      form.readTime.value = blog.readTime;
+      form.image.value = blog.image;
+      form.excerpt.value = blog.excerpt;
+      
+      if (blog.content) {
+        form.intro.value = blog.content.intro || '';
+        form.conclusion.value = blog.content.conclusion || '';
+        
+        document.getElementById('sectionsContainer').innerHTML = '';
+        sectionCount = 0;
+        
+        if (blog.content.sections) {
+          blog.content.sections.forEach(sec => {
+            const idx = addSection();
+            document.getElementById(`sec_head_${idx}`).value = sec.heading || '';
+            document.getElementById(`sec_body_${idx}`).value = sec.body || '';
+            if (sec.bullets) {
+              document.getElementById(`sec_bul_${idx}`).value = sec.bullets.map(b => '- ' + b).join('\\n');
+            }
+          });
+        }
+      }
+      
+      showForm();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      alert('Error loading blog for edit.');
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('blogForm').reset();
+    document.getElementById('editBlogId').value = '';
+    document.getElementById('formTitle').innerText = 'Create New Blog Post';
+    document.querySelector('button[type="submit"]').innerText = 'Publish Post';
+    document.getElementById('sectionsContainer').innerHTML = '';
+    sectionCount = 0;
+    addSection();
+  }
+
+  document.getElementById('blogForm').addEventListener('reset', resetForm);
+
+  document.getElementById('blogForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Saving...';
+    
+    const formData = new FormData(this);
+    const editId = document.getElementById('editBlogId').value;
+    
+    // Parse sections
+    const sections = [];
+    for (let i = 0; i < sectionCount; i++) {
+      if (document.getElementById(`section-${i}`)) {
+        const heading = formData.get(`section_heading_${i}`);
+        const body = formData.get(`section_body_${i}`);
+        const bulletsRaw = formData.get(`section_bullets_${i}`);
+        
+        let bullets = null;
+        if (bulletsRaw && bulletsRaw.trim()) {
+           bullets = bulletsRaw.split('\\n').map(b => b.trim().replace(/^-/, '').trim()).filter(b => b.length > 0);
+        }
+        
+        sections.push({ heading, body, bullets });
+      }
+    }
+    
+    const payload = {
+      title: formData.get('title'),
+      category: formData.get('category'),
+      tag: formData.get('tag'),
+      readTime: formData.get('readTime'),
+      image: formData.get('image'),
+      excerpt: formData.get('excerpt'),
+      content: {
+        intro: formData.get('intro'),
+        sections: sections,
+        conclusion: formData.get('conclusion') || ''
+      }
+    };
+    
+    const method = editId ? 'PUT' : 'POST';
+    const url = editId ? `/api/admin/blogs/${editId}` : '/api/admin/blogs';
+
+    try {
+      const res = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        alert(editId ? 'Blog updated successfully!' : 'Blog published successfully!');
+        showList();
+        fetchBlogs();
+      } else {
+        alert('Failed to save: ' + (result.error || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Error saving blog: ' + err.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = editId ? 'Update Post' : 'Publish Post';
+    }
+  });
+</script>
+
+</body>
+</html>

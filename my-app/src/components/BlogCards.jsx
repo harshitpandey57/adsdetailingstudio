@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, Tag, ChevronRight } from 'lucide-react';
-import blogData from '../data/blogData';
 
 function BlogCard({ blog, featured = false, onOpen }) {
   const [hovered, setHovered] = useState(false);
@@ -64,13 +63,43 @@ function BlogCard({ blog, featured = false, onOpen }) {
 }
 
 export default function BlogCards({ setView, setActiveBlog }) {
-  const [featured, ...rest] = blogData;
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/blogs')
+      .then((res) => res.json())
+      .then((data) => {
+        setBlogs(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching blogs:', err);
+        setLoading(false);
+      });
+  }, []);
 
   const openBlog = (id) => {
     setActiveBlog(id);
     setView('blog');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (loading) {
+    return (
+      <section className="blog-section" id="blog">
+        <div className="container-layout">
+          <div className="blog-section__header">
+            <h2 className="blog-section__title">Loading Blogs...</h2>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (blogs.length === 0) return null;
+
+  const [featured, ...rest] = blogs;
 
   return (
     <section className="blog-section" id="blog">
@@ -91,7 +120,7 @@ export default function BlogCards({ setView, setActiveBlog }) {
           </div>
         </div>
 
-        {/* Featured (left tall) + 2x2 grid (right) */}
+        {/* Featured (left tall) + grid (right) */}
         <div className="blog-grid">
           <div className="blog-grid__featured">
             <BlogCard
@@ -110,6 +139,33 @@ export default function BlogCards({ setView, setActiveBlog }) {
             ))}
           </div>
         </div>
+
+        {/* View All Button */}
+        {rest.length > 4 && (
+          <div style={{ textAlign: 'center', marginTop: '40px' }}>
+            <button 
+              onClick={() => {
+                setView('all-blogs');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              className="btn-primary"
+              style={{
+                background: 'var(--red, #ef4444)',
+                color: '#fff',
+                padding: '12px 24px',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'opacity 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.opacity = 0.9}
+              onMouseLeave={(e) => e.target.style.opacity = 1}
+            >
+              View All Articles
+            </button>
+          </div>
+        )}
 
       </div>
     </section>

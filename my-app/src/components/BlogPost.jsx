@@ -1,19 +1,45 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Clock, Tag, Calendar, BookOpen, ChevronRight } from 'lucide-react';
-import blogData from '../data/blogData';
 
 export default function BlogPost({ blogId, setView, setActiveBlog }) {
-  const blog = blogData.find((b) => b.id === blogId);
+  const [blog, setBlog] = useState(null);
+  const [otherBlogs, setOtherBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Scroll to top on mount
   useEffect(() => {
+    setLoading(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    Promise.all([
+      fetch(`http://localhost:5000/api/blogs/${blogId}`).then(res => res.json()),
+      fetch('http://localhost:5000/api/blogs').then(res => res.json())
+    ])
+      .then(([blogData, allBlogs]) => {
+        if (blogData.error) {
+          setBlog(null);
+        } else {
+          setBlog(blogData);
+        }
+        setOtherBlogs(allBlogs.filter(b => b.id !== blogId).slice(0, 3));
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching blog post:', err);
+        setLoading(false);
+      });
   }, [blogId]);
+
+  if (loading) {
+    return (
+      <div className="blog-post-page" style={{ padding: '120px 20px', textAlign: 'center' }}>
+        <h2>Loading article...</h2>
+      </div>
+    );
+  }
 
   if (!blog) return null;
 
   const { content } = blog;
-  const otherBlogs = blogData.filter((b) => b.id !== blogId).slice(0, 3);
 
   return (
     <div className="blog-post-page">
@@ -28,7 +54,7 @@ export default function BlogPost({ blogId, setView, setActiveBlog }) {
             className="blog-post-back-btn"
             onClick={() => {
               setActiveBlog(null);
-              setView('home');
+              setView('all-blogs');
             }}
           >
             <ArrowLeft size={16} />
@@ -108,7 +134,7 @@ export default function BlogPost({ blogId, setView, setActiveBlog }) {
               className="blog-post-footer-back"
               onClick={() => {
                 setActiveBlog(null);
-                setView('home');
+                setView('all-blogs');
               }}
             >
               <ArrowLeft size={14} />

@@ -15,6 +15,7 @@ import StatsBanner from './components/StatsBanner';
 import Gallery from './components/Gallery';
 import BlogCards from './components/BlogCards';
 import BlogPost from './components/BlogPost';
+import AllBlogs from './components/AllBlogs';
 import Testimonials from './components/Testimonials';
 import FAQ from './components/FAQ';
 import Contact from './components/Contact';
@@ -25,9 +26,43 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsAndConditions from './components/TermsAndConditions';
 
 export default function App() {
-  const [view, setView] = useState('home'); // 'home', 'about', 'contact', 'services', 'blog'
+  const [view, setView] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash.startsWith('blog/')) return 'blog';
+    return hash || 'home';
+  });
   const [selectedService, setSelectedService] = useState('');
-  const [activeBlog, setActiveBlog] = useState(null);
+  const [activeBlog, setActiveBlog] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash.startsWith('blog/')) return parseInt(hash.split('/')[1], 10);
+    return null;
+  });
+
+  // Sync state to URL hash
+  useEffect(() => {
+    if (view === 'blog' && activeBlog) {
+      window.history.replaceState(null, '', `#blog/${activeBlog}`);
+    } else if (view === 'home') {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else {
+      window.history.replaceState(null, '', `#${view}`);
+    }
+  }, [view, activeBlog]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash.startsWith('blog/')) {
+        setView('blog');
+        setActiveBlog(parseInt(hash.split('/')[1], 10));
+      } else {
+        setView(hash || 'home');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // Scroll to top when view changes
   useEffect(() => {
@@ -67,6 +102,8 @@ export default function App() {
         </>
       ) : view === 'blog' ? (
         <BlogPost blogId={activeBlog} setView={setView} setActiveBlog={setActiveBlog} />
+      ) : view === 'all-blogs' ? (
+        <AllBlogs setView={setView} setActiveBlog={setActiveBlog} />
       ) : view === 'privacy' ? (
         <PrivacyPolicy />
       ) : view === 'terms' ? (

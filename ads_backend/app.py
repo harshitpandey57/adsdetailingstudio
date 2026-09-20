@@ -89,6 +89,19 @@ def init_db():
                 created_at  TEXT    DEFAULT (datetime('now','localtime'))
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS blogs (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                category    TEXT    NOT NULL,
+                readTime    TEXT    NOT NULL,
+                date        TEXT    NOT NULL,
+                title       TEXT    NOT NULL,
+                excerpt     TEXT    NOT NULL,
+                image       TEXT    NOT NULL,
+                tag         TEXT    NOT NULL,
+                content     TEXT    NOT NULL
+            )
+        """)
         conn.commit()
     log.info("Database ready: %s", cfg.DB_PATH)
 
@@ -200,6 +213,111 @@ def require_basic_auth(f):
 def health():
     return jsonify({"status": "ok", "service": "ADS Detailing Backend"})
 
+import json
+
+# ── Blogs API ─────────────────────────────────────────────────────────────────
+@app.route("/api/blogs", methods=["GET"])
+def get_blogs():
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT id, category, readTime, date, title, excerpt, image, tag FROM blogs ORDER BY id ASC"
+        ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route("/api/blogs/<int:blog_id>", methods=["GET"])
+def get_blog(blog_id):
+    with get_db() as conn:
+        row = conn.execute("SELECT * FROM blogs WHERE id=?", (blog_id,)).fetchone()
+    if not row:
+        return jsonify({"error": "Blog not found"}), 404
+    
+    # Parse content JSON string back to dict
+    blog_dict = dict(row)
+    try:
+        blog_dict["content"] = json.loads(blog_dict["content"])
+    except:
+        pass
+    return jsonify(blog_dict)
+
+@app.route("/api/admin/blogs", methods=["POST"])
+@require_basic_auth
+def create_blog():
+    data = request.get_json(silent=True) or {}
+    
+    # Basic validation
+    required_fields = ["title", "category", "tag", "readTime", "image", "excerpt", "content"]
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({"success": False, "error": f"Missing field: {field}"}), 400
+
+    from datetime import datetime
+    date_str = datetime.now().strftime("%b %d, %Y")
+
+    record = (
+        data["category"].strip(),
+        data["readTime"].strip(),
+        date_str,
+        data["title"].strip(),
+        data["excerpt"].strip(),
+        data["image"].strip(),
+        data["tag"].strip(),
+        json.dumps(data["content"])
+    )
+
+    with get_db() as conn:
+        cursor = conn.execute(
+            """INSERT INTO blogs (category, readTime, date, title, excerpt, image, tag, content)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            record
+        )
+        new_id = cursor.lastrowid
+        conn.commit()
+
+    return jsonify({"success": True, "message": "Blog published successfully!", "blog_id": new_id}), 201
+
+@app.route("/api/admin/blogs/<int:blog_id>", methods=["PUT"])
+@require_basic_auth
+def update_blog(blog_id):
+    data = request.get_json(silent=True) or {}
+    
+    required_fields = ["title", "category", "tag", "readTime", "image", "excerpt", "content"]
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({"success": False, "error": f"Missing field: {field}"}), 400
+
+    record = (
+        data["category"].strip(),
+        data["readTime"].strip(),
+        data["title"].strip(),
+        data["excerpt"].strip(),
+        data["image"].strip(),
+        data["tag"].strip(),
+        json.dumps(data["content"]),
+        blog_id
+    )
+
+    with get_db() as conn:
+        cursor = conn.execute(
+            """UPDATE blogs SET category=?, readTime=?, title=?, excerpt=?, image=?, tag=?, content=?
+               WHERE id=?""",
+            record
+        )
+        if cursor.rowcount == 0:
+            return jsonify({"success": False, "error": "Blog not found"}), 404
+        conn.commit()
+
+    return jsonify({"success": True, "message": "Blog updated successfully!"})
+
+@app.route("/api/admin/blogs/<int:blog_id>", methods=["DELETE"])
+@require_basic_auth
+def delete_blog(blog_id):
+    with get_db() as conn:
+        cursor = conn.execute("DELETE FROM blogs WHERE id=?", (blog_id,))
+        if cursor.rowcount == 0:
+            return jsonify({"success": False, "error": "Blog not found"}), 404
+        conn.commit()
+    return jsonify({"success": True, "message": "Blog deleted successfully!"})
+
 # ── Book an appointment (used by Contact.jsx & ContactFormAndDetails.jsx) ─────
 @app.route("/api/book-appointment", methods=["POST"])
 @limiter.limit("5 per hour")
@@ -299,14 +417,24 @@ def delete_appointment(appt_id):
 @app.route("/admin")
 @require_basic_auth
 def admin_panel():
+    status_filter = request.args.get("status")
     with get_db() as conn:
-        rows = conn.execute("SELECT * FROM appointments ORDER BY id DESC").fetchall()
+        if status_filter:
+            rows = conn.execute("SELECT * FROM appointments WHERE status=? ORDER BY id DESC", (status_filter,)).fetchall()
+        else:
+            rows = conn.execute("SELECT * FROM appointments ORDER BY id DESC").fetchall()
+            
         counts = conn.execute(
             "SELECT status, COUNT(*) as n FROM appointments GROUP BY status"
         ).fetchall()
     stats = {r["status"]: r["n"] for r in counts}
     return render_template("admin.html", appointments=rows, stats=stats,
-                            service_labels=SERVICE_LABELS)
+                            service_labels=SERVICE_LABELS, current_filter=status_filter)
+
+@app.route("/admin/blog")
+@require_basic_auth
+def admin_blog_panel():
+    return render_template("admin_blog.html")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  SERVE THE REACT (VITE) FRONTEND
