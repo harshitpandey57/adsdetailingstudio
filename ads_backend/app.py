@@ -457,10 +457,10 @@ def serve_react(path):
 # ═══════════════════════════════════════════════════════════════════════════════
 #  ENTRY POINT
 # ═══════════════════════════════════════════════════════════════════════════════
-
+init_db()
 
 if __name__ == "__main__":
-    init_db()
+    
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("FLASK_ENV", "development") == "development"
     log.info("Starting ADS Detailing backend on port %d (debug=%s)", port, debug)
