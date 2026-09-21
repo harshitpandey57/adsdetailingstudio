@@ -67,7 +67,7 @@ export default function BlogCards({ setView, setActiveBlog }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/blogs')
+    fetch('http://localhost:5000/api/blogs')
       .then((res) => res.json())
       .then((data) => {
         setBlogs(data);
@@ -143,11 +143,11 @@ export default function BlogCards({ setView, setActiveBlog }) {
         {/* View All Button */}
         {rest.length > 4 && (
           <div style={{ textAlign: 'center', marginTop: '40px' }}>
-            <button
+            <button 
               onClick={() => {
                 setView('all-blogs');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              }} 
               className="btn-primary"
               style={{
                 background: 'var(--red, #ef4444)',

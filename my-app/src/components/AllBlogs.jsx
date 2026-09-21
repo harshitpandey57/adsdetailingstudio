@@ -67,7 +67,7 @@ export default function AllBlogs({ setView, setActiveBlog }) {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetch('/api/blogs')
+    fetch('http://localhost:5000/api/blogs')
       .then((res) => res.json())
       .then((data) => {
         setBlogs(data);
