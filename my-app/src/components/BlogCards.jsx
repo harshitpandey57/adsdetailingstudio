@@ -67,7 +67,7 @@ export default function BlogCards({ setView, setActiveBlog }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/blogs')
+    fetch('/api/blogs')
       .then((res) => res.json())
       .then((data) => {
         setBlogs(data);

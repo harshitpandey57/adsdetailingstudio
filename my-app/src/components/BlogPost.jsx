@@ -11,8 +11,8 @@ export default function BlogPost({ blogId, setView, setActiveBlog }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     Promise.all([
-      fetch(`http://localhost:5000/api/blogs/${blogId}`).then(res => res.json()),
-      fetch('http://localhost:5000/api/blogs').then(res => res.json())
+      fetch(`/api/blogs/${blogId}`).then(res => res.json()),
+      fetch('/api/blogs').then(res => res.json())
     ])
       .then(([blogData, allBlogs]) => {
         if (blogData.error) {
