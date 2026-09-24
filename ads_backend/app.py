@@ -102,15 +102,6 @@ def init_db():
                 content     TEXT    NOT NULL
             )
         """)
-        # Migration for older DBs on Render persistent disks
-        try:
-            conn.execute("ALTER TABLE blogs ADD COLUMN tag TEXT NOT NULL DEFAULT ''")
-        except sqlite3.OperationalError:
-            pass
-        try:
-            conn.execute("ALTER TABLE blogs ADD COLUMN content TEXT NOT NULL DEFAULT '{}'")
-        except sqlite3.OperationalError:
-            pass
         conn.commit()
     log.info("Database ready: %s", cfg.DB_PATH)
 

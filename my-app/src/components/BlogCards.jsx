@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Tag, ChevronRight } from 'lucide-react';
+import blogData from '../data/blogData.js';
 
 function BlogCard({ blog, featured = false, onOpen }) {
   const [hovered, setHovered] = useState(false);
@@ -67,14 +68,20 @@ export default function BlogCards({ setView, setActiveBlog }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const localBlogs = blogData.map(b => ({ ...b, id: `local-${b.id}` }));
+
     fetch('/api/blogs')
       .then((res) => res.json())
       .then((data) => {
-        setBlogs(data);
+        const dbBlogs = Array.isArray(data) ? data.reverse() : [];
+        const allBlogs = [...dbBlogs, ...localBlogs];
+        const uniqueBlogs = Array.from(new Map(allBlogs.map((b) => [b.title, b])).values());
+        setBlogs(uniqueBlogs);
         setLoading(false);
       })
       .catch((err) => {
         console.error('Error fetching blogs:', err);
+        setBlogs(localBlogs);
         setLoading(false);
       });
   }, []);
