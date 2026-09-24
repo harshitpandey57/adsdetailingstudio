@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Clock, Tag, Calendar, BookOpen, ChevronRight } from 'lucide-react';
+import blogData from '../data/blogData.js';
 
 export default function BlogPost({ blogId, setView, setActiveBlog }) {
   const [blog, setBlog] = useState(null);
@@ -10,21 +11,32 @@ export default function BlogPost({ blogId, setView, setActiveBlog }) {
     setLoading(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
+    const localBlogs = blogData.map(b => ({ ...b, id: `local-${b.id}` }));
+
     Promise.all([
-      fetch(`http://localhost:5000/api/blogs/${blogId}`).then(res => res.json()),
-      fetch('http://localhost:5000/api/blogs').then(res => res.json())
+      typeof blogId === 'string' && blogId.startsWith('local-')
+        ? Promise.resolve({ error: "Local" })
+        : fetch(`/api/blogs/${blogId}`).then(res => res.json()).catch(() => ({ error: true })),
+      fetch('/api/blogs').then(res => res.json()).catch(() => [])
     ])
-      .then(([blogData, allBlogs]) => {
-        if (blogData.error) {
-          setBlog(null);
+      .then(([dbBlogData, dbAllBlogs]) => {
+        let finalBlog = null;
+        if (dbBlogData && !dbBlogData.error) {
+          finalBlog = dbBlogData;
         } else {
-          setBlog(blogData);
+          finalBlog = localBlogs.find(b => b.id === blogId);
         }
-        setOtherBlogs(allBlogs.filter(b => b.id !== blogId).slice(0, 3));
+        setBlog(finalBlog);
+
+        const allBlogs = [...(Array.isArray(dbAllBlogs) ? dbAllBlogs : []), ...localBlogs];
+        const uniqueBlogs = Array.from(new Map(allBlogs.map((b) => [b.title, b])).values());
+        setOtherBlogs(uniqueBlogs.filter(b => b.id !== blogId).slice(0, 3));
+        
         setLoading(false);
       })
       .catch(err => {
         console.error('Error fetching blog post:', err);
+        setBlog(localBlogs.find(b => b.id === blogId) || null);
         setLoading(false);
       });
   }, [blogId]);

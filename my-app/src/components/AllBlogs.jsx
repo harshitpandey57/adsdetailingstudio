@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Tag, ChevronRight, Search } from 'lucide-react';
+import blogData from '../data/blogData.js';
 
 function BlogCard({ blog, onOpen }) {
   const [hovered, setHovered] = useState(false);
@@ -67,14 +68,21 @@ export default function AllBlogs({ setView, setActiveBlog }) {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    fetch('http://localhost:5000/api/blogs')
+
+    const localBlogs = blogData.map(b => ({ ...b, id: `local-${b.id}` }));
+
+    fetch('/api/blogs')
       .then((res) => res.json())
       .then((data) => {
-        setBlogs(data);
+        const dbBlogs = Array.isArray(data) ? data : [];
+        const allBlogs = [...dbBlogs, ...localBlogs];
+        const uniqueBlogs = Array.from(new Map(allBlogs.map((b) => [b.title, b])).values());
+        setBlogs(uniqueBlogs?.reverse());
         setLoading(false);
       })
       .catch((err) => {
         console.error('Error fetching blogs:', err);
+        setBlogs(localBlogs);
         setLoading(false);
       });
   }, []);
@@ -96,18 +104,18 @@ export default function AllBlogs({ setView, setActiveBlog }) {
   return (
     <div className="all-blogs-page" style={{ padding: '120px 20px 80px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
       <div className="container-layout">
-        
+
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <h1 style={{ fontSize: '2.5rem', color: '#111827', marginBottom: '16px' }}>All Articles & Insights</h1>
           <p style={{ color: '#6b7280', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto 32px' }}>
             Browse our complete library of detailing tips, guides, and expert advice to keep your vehicle looking its best.
           </p>
-          
+
           <div style={{ position: 'relative', maxWidth: '500px', margin: '0 auto' }}>
             <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
-            <input 
-              type="text" 
-              placeholder="Search by title, category, or tag..." 
+            <input
+              type="text"
+              placeholder="Search by title, category, or tag..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -135,7 +143,7 @@ export default function AllBlogs({ setView, setActiveBlog }) {
             {filteredBlogs.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 0', color: '#6b7280' }}>
                 <h3>No articles found matching "{searchQuery}"</h3>
-                <button 
+                <button
                   onClick={() => setSearchQuery('')}
                   style={{ marginTop: '16px', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', textDecoration: 'underline' }}
                 >
@@ -143,10 +151,10 @@ export default function AllBlogs({ setView, setActiveBlog }) {
                 </button>
               </div>
             ) : (
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
-                gap: '32px' 
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gap: '32px'
               }}>
                 {filteredBlogs.map(blog => (
                   <BlogCard key={blog.id} blog={blog} onOpen={() => openBlog(blog.id)} />
